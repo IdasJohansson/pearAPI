@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using pearAPI.Database;
 using pearAPI.Models;
@@ -35,29 +37,28 @@ namespace pearAPI.Controllers
         }
 
         [HttpGet("warehouse-product-quantity")]
-        public async Task<ActionResult<IEnumerable<Delivery>>> GetWarehouseProductQuantity()
+        public async Task<ActionResult<IEnumerable<DeliveryDTO>>> GetWarehouseProductQuantity()
         {
-            var query = from delivery in _context.Delivery
-                        group delivery by new { delivery.WarehouseId, delivery.ProductId } into g
-                        select new Delivery
-                        {
-                            WarehouseId = g.Key.WarehouseId,
-                            ProductId = g.Key.ProductId,
-                            Quantity = g.Sum(x => x.Quantity)
-                        };
-
             //var query = from delivery in _context.Delivery
-            //            join product in _context.Products on delivery.ProductId equals product.Id
-            //            join warehouse in _context.Warehouse on delivery.WarehouseId equals warehouse.Id
-            //            group new { warehouse.City, product.Name } by new { warehouse.Id, product.Id } into g
-            //            select new
+            //            group delivery by new { delivery.WarehouseId, delivery.ProductId } into g
+            //            select new Delivery
             //            {
-            //                WarehouseId = g.Key.Id,
-            //                ProductId = g.Key.Id,
-            //                Quantity = g.Sum(x => x.Quantity),
-            //                WarehouseName = g.Select(x => x.City).First(),
-            //                ProductName = g.Select(x => x.Name).First(),
+            //                WarehouseId = g.Key.WarehouseId,
+            //                ProductId = g.Key.ProductId,
+            //                Quantity = g.Sum(x => x.Quantity)
             //            };
+
+            // Created this querie joins the tables and returns the query with WarehouseName and ProductName instead. 
+             var query = from delivery in _context.Delivery
+                         join product in _context.Products on delivery.ProductId equals product.Id
+                         join warehouse in _context.Warehouse on delivery.WarehouseId equals warehouse.Id
+                         group delivery by new { warehouse.City, product.Name } into g
+                         select new DeliveryDTO
+                         {
+                             WarehouseName = g.Key.City,
+                             ProductName = g.Key.Name,
+                             Quantity = g.Sum(x => x.Quantity)
+                         };
 
             return await query.ToListAsync();
         }
