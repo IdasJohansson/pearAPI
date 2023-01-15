@@ -28,7 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("Policies");
+app.UseCors("AllowOrigin");
 
 app.UseHttpsRedirection();
 
