@@ -34,6 +34,34 @@ namespace pearAPI.Controllers
             return await _context.Delivery.ToListAsync();
         }
 
+        [HttpGet("warehouse-product-quantity")]
+        public async Task<ActionResult<IEnumerable<Delivery>>> GetWarehouseProductQuantity()
+        {
+            var query = from delivery in _context.Delivery
+                        group delivery by new { delivery.WarehouseId, delivery.ProductId } into g
+                        select new Delivery
+                        {
+                            WarehouseId = g.Key.WarehouseId,
+                            ProductId = g.Key.ProductId,
+                            Quantity = g.Sum(x => x.Quantity)
+                        };
+
+            //var query = from delivery in _context.Delivery
+            //            join product in _context.Products on delivery.ProductId equals product.Id
+            //            join warehouse in _context.Warehouse on delivery.WarehouseId equals warehouse.Id
+            //            group new { warehouse.City, product.Name } by new { warehouse.Id, product.Id } into g
+            //            select new
+            //            {
+            //                WarehouseId = g.Key.Id,
+            //                ProductId = g.Key.Id,
+            //                Quantity = g.Sum(x => x.Quantity),
+            //                WarehouseName = g.Select(x => x.City).First(),
+            //                ProductName = g.Select(x => x.Name).First(),
+            //            };
+
+            return await query.ToListAsync();
+        }
+
         // GET: api/Delivery/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Delivery>> GetDelivery(Guid id)

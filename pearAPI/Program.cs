@@ -28,6 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Adds the policy I wrote above. 
 app.UseCors("AllowOrigin");
 
 app.UseHttpsRedirection();
