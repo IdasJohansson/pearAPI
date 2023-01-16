@@ -9,7 +9,7 @@ namespace pearAPI.Models
         public int Quantity { get; set; }
         public int WarehouseId { get; set; }
         public string? UserName { get; set; }
-        //public Guid UserId { get; set; }
+     
     }
 }
 

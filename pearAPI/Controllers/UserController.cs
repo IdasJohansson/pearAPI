@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using pearAPI.Database;
 using pearAPI.Models;
@@ -82,18 +83,19 @@ namespace pearAPI.Controllers
             return NoContent();
         }
 
+
         // POST: api/User
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-          if (_context.Users == null)
-          {
-              return Problem("Entity set 'PearDbContext.Users'  is null.");
-          }
+            if (_context.Users == null)
+            {
+                return Problem("Entity set 'PearDbContext.Users'  is null.");
+            }
+            // When posting a new user, the password becomes hashed and stored as hashed in the db. 
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
 
@@ -122,13 +124,21 @@ namespace pearAPI.Controllers
             return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        //  F?r att kolla om en anv?ndare finns i databasen genom att kolla om username och password finns d?r, anv?nds vid login. 
-        [HttpPost("CheckLogin")] // Tar in ett User objekt som vi döper till user, detta är en POST metod. 
+        // Tar in ett User object kollar om användarnamnet finns och jämför lösenordet med det hashade lösenordet. 
+        [HttpPost("CheckLogin")]
         public async Task<bool> CheckLogin(User user)
         {
-            // Går in i userstabellen och kollar om det finns något som matchar. Kollar om objektet som vi kallar för u är samma som user som är lagrat i databasen. (Både för Username och Password)
-            // Returnerar true om det stämmer, annars false. 
-            return await _context.Users.AnyAsync(u => u.UserName == user.UserName && u.Password == user.Password);
+            var validUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == user.UserName);
+            if (validUser != null)
+            {
+                bool validPassword = BCrypt.Net.BCrypt.Verify(user.Password, validUser.Password);
+                return validPassword;
+            }
+            else
+            {
+                return false;
+            }
         }
+
     }
 }
