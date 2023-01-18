@@ -81,37 +81,6 @@ namespace pearAPI.Controllers
             return delivery;
         }
 
-        // PUT: api/Delivery/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutDelivery(Guid id, Delivery delivery)
-        {
-            if (id != delivery.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(delivery).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DeliveryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         // POST: api/Delivery
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -125,26 +94,6 @@ namespace pearAPI.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetDelivery", new { id = delivery.Id }, delivery);
-        }
-
-        // DELETE: api/Delivery/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDelivery(Guid id)
-        {
-            if (_context.Delivery == null)
-            {
-                return NotFound();
-            }
-            var delivery = await _context.Delivery.FindAsync(id);
-            if (delivery == null)
-            {
-                return NotFound();
-            }
-
-            _context.Delivery.Remove(delivery);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         private bool DeliveryExists(Guid id)
